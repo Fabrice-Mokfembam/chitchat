@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>chitChat - Stay Connected, Anytime, Anywhere!</title>
+  <link rel="stylesheet" href="./client.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- registration page -->
+    <div id="registration-page" class="page registration">
+      <div class="container">
+        <div class="logo-container">
+          <div>
+            <img src="assets/images/Chat Bubble.png" alt="message icon" />
+            <p class="logo">chitChat</p>
+          </div>
+          <div><img src="assets/images/Messages.png" alt="" /></div>
+        </div>
+        <div>
+          <h2>Register</h2>
+          <p>
+            Welcome to Chit Chat! Connect with friends and family
+            effortlessly. <br />
+            Start chatting, sharing, and connecting today!
+          </p>
+          <form class="register">
+            <div class="input-group">
+              <label for="email-register">Email:</label
+              ><input
+                type="email"
+                name="email"
+                id="email-register"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+            <div class="input-group">
+              <label for="password-register">Password:</label
+              ><input
+                required
+                type="password"
+                name="password"
+                id="password-register"
+                placeholder="Enter your password"
+              />
+            </div>
+
+            <button type="submit">Register</button>
+          </form>
+
+          <p>
+            Already have an account? <span><a href="./index.html">Login</a></span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="node_modules/socket.io-client/dist/socket.io.min.js"></script>
+  <script>
+    const socket = io('http://localhost:5000');
+
+    socket.on('connect', () => {
+      console.log('Connected to the server');
+    });
+
+    const registrationForm = document.querySelector('.register');
+    console.log(registrationForm);
+
+    registrationForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const registrationEmail = document.querySelector('#email-register').value;
+      const registrationPassword = document.querySelector('#password-register').value;
+
+      console.log(registrationEmail, registrationPassword, socket.id);
+
+      socket.emit('send-registration-data', {
+        id: socket.id,
+        email: registrationEmail,
+        password: registrationPassword
+      });
+
+      document.querySelector('#email-register').value = '';
+      document.querySelector('#password-register').value = '';
+   
+    });
+
+ socket.on('registration-success', () => {
+  console.log('Registration successful');
+     window.location.href = './index.html';
+});
+
+socket.on('registration-error', errorMessage => {
+  console.log('Registration error:', errorMessage);
+ 
+});
+  </script>
+  <script src="./client.js"></script>
+</body>
+</html>

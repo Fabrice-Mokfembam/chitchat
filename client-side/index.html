@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>chitChat - Stay Connected, Anytime, Anywhere!</title>
+  <link rel="stylesheet" href="./client.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- login page -->
+    <div id="login-page" class="page">
+      <div class="container">
+        <div class="logo-container">
+          <div>
+            <img src="assets/images/Chat Bubble.png" alt="message icon" />
+            <p class="logo">chitChat</p>
+          </div>
+          <div><img src="assets/images/Messages.png" alt="" /></div>
+        </div>
+        <div>
+          <h2>Sign In</h2>
+          <p>
+            Welcome back! Dive back into the world of conversations.
+            <br />With Chit Chat, staying connected has never been easier.
+          </p>
+          <form action="" class="login">
+            <div class="input-group">
+              <label for="email-login">Email:</label
+              ><input
+                value=" "
+                type="email"
+                name="email"
+                id="email-login"
+                required
+                placeholder="Enter your email"
+              />
+            </div>
+            <div class="input-group">
+              <label for="password-login">Password:</label
+              ><input
+                type="password"
+                name="password-login"
+                id="password"
+                required
+                placeholder="Enter your email"
+              />
+            </div>
+
+            <button type="submit">Sign In</button>
+          </form>
+
+          <p>
+            Don't have an account? <span><a href="./register.html">Register</a></span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="node_modules/socket.io-client/dist/socket.io.min.js"></script>
+  <script>
+    const socket = io('http://localhost:5000'); // Connect to the server
+
+    socket.on('connect', () => {
+      console.log('Connected to the server');
+    });
+
+    const loginForm = document.querySelector('.login');
+    console.log(loginForm);
+
+    loginForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      var login_email = document.querySelector('#email-login').value;
+      let login_password = document.querySelector('#password').value;
+
+      socket.emit('send-login-data', {
+        id: socket.id,
+        email: login_email,
+        password: login_password
+      });
+
+      console.log(login_email, ' ', login_password);
+
+    });
+
+socket.on('login-success', () => {
+  console.log('Login successful');
+
+  const login_email = document.querySelector('#email-login').value;
+  const redirectURL = `./chat.html?email=${encodeURIComponent(login_email)}`;
+  window.location.href = redirectURL;
+
+     document.querySelector('#email-login').value = '';
+     document.querySelector('#password').value = '';
+});
+
+socket.on('login-error', (errorMessage) => {
+    console.log('Login error:', errorMessage);
+});
+  </script>
+  <script src="./client.js"></script>
+</body>
+</html>

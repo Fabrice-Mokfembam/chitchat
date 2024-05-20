@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>chitChat - Stay Connected, Anytime, Anywhere!</title>
+    <link rel="stylesheet" href="./client.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css"
+    />
+    <script type="module" src="./client.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- chat page -->
+      <div id="chatPage" class="page">
+        <div class="container-chat columns">
+          <div>
+            <div class="search-container">
+              <i class="bx bx-search"></i>
+              <input
+                type="search"
+                name="search"
+                id="search"
+                placeholder="search friend by email"
+              />
+            </div>
+            <div class="contacts">
+              <h2>Contacts</h2>
+            </div>
+          </div>
+          <div class="chat-section">
+            <div class="title">
+              <div class="letter" id="sender-letter">SE</div>
+              <p id="sender-email">Select user from contacts</p>
+            </div>
+
+            <div class="type-message">
+              <label for="file" class="file"
+                ><i class="bx bx-paperclip"></i
+              ></label>
+              <input type="file" name="picture" id="file" accept="image/*" />
+              <textarea
+                type="text"
+                name="message"
+                placeholder="not available..."
+              ></textarea>
+              <i class="bx bxs-send"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="node_modules/socket.io-client/dist/socket.io.min.js"></script>
+    <script>
+      const socket = io("http://localhost:5000");
+      var SID;
+
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      const emailid = urlParams.get("email");
+
+      if (emailid) {
+        console.log("Email:", emailid);
+      }
+
+      socket.on("connect", () => {
+        console.log("Connected to the server");
+      });
+
+      socket.on("send-uuid", (uuid) => {
+        var SID = uuid;
+      });
+
+      socket.on("login-success", () => {
+        console.log("Login successful");
+        console.log("successful");
+      });
+
+      socket.on("send-allUsers", (users) => {
+        users.forEach((element) => {
+          let contacts = document.querySelector(".contacts");
+
+          let div = document.createElement("div");
+          div.classList.add("contact");
+
+          div.addEventListener("click", () => {
+            createChatSession(element);
+          });
+
+          let splittedEmail = element.UserEmail.split("");
+
+          div.innerHTML = `
+             <div class="letter">${
+               splittedEmail[0].toUpperCase() + splittedEmail[1].toUpperCase()
+             }</div>
+               <div>
+                 <h3>${element.UserEmail}</h3>
+                <p>abeg push me assignment</p>
+              </div> `;
+
+          contacts.appendChild(div);
+        });
+      });
+
+      var general_join_chat = [];
+
+      function createChatSession(element) {
+        let chatSections = document.querySelectorAll(".chat-section");
+        chatSections.forEach((section) => {
+          section.style.display = "none";
+        });
+
+        let container_chat = document.querySelector(".container-chat");
+
+        let chat_section = document.createElement("div");
+        chat_section.classList.add("chat-section");
+
+        let splittedEmail = element.UserEmail.split("");
+
+        chat_section.innerHTML = `
+    <div class="title">
+      <div class="letter" id="sender-letter">${
+        splittedEmail[0] + splittedEmail[1]
+      }</div>
+      <p id="sender-email">${element.UserEmail}</p>
+    </div>
+    <div class="messages">
+     
+    </div>
+    <div class="type-message">
+      <label for="file" class="file"><i class="bx bx-paperclip"></i></label>
+      <input type="file" name="picture" id="file" accept="image/*" />
+      <textarea type="text" id="text-message" name="message" placeholder="Write a message..."></textarea>
+      <i class="bx bxs-send"></i>
+    </div>
+  `;
+
+        container_chat.appendChild(chat_section);
+
+        let text_area = chat_section.querySelector("#text-message");
+        let send_icon = chat_section.querySelector(".bxs-send");
+
+        send_icon.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          console.log(text_area.value);
+
+       socket.emit("send-message", {
+            receiverId: element.UserEmail,
+            message: text_area.value,
+            senderId: emailid,
+            messageId: emailid,
+          });
+          
+
+          text_area.value = "";
+        });
+
+        let messages = chat_section.querySelector(".messages");
+
+        socket.emit("retrieve-messages", emailid, element.UserEmail);
+
+        socket.on("retrieved-messages", (message) => {
+          console.log("Received message:", message);
+
+          message.forEach((item) => {
+            if (item.MessageId === emailid) {
+              let div = document.createElement("div");
+              div.classList.add("message");
+
+              div.innerHTML = `
+            <div class="sender-message">${item.Message}</div>
+     `;
+
+              messages.appendChild(div);
+            } else {
+              let div = document.createElement("div");
+              div.classList.add("message");
+              div.classList.add("message-left");
+
+              div.innerHTML = `
+     
+            <div class="receiver-message">${item.Message}</div>
+     `;
+
+              messages.appendChild(div);
+            }
+          });
+        });
+      }
+
+      socket.on("login-error", (errorMessage) => {
+        console.log("Login error:", errorMessage);
+        // Display error message to the user
+      });
+    </script>
+    <script src="./client.js"></script>
+  </body>
+</html>
